@@ -3,338 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Big Data: The Interactive Quiz</title>
+    <title>Data Sorter</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #1d212b;
+            --primary-text: #d0d0d0;
+            --accent-color: #ff9800;
+            --drop-zone-bg: rgba(255, 152, 0, 0.1);
+            --drop-zone-border: #ff9800;
+            --block-bg: #333a4c;
+            --block-border: #4f586e;
+            --correct-color: #4caf50;
+            --incorrect-color: #f44336;
+        }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #1a1a2e;
-            color: #e0e0e0;
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-color);
+            color: var(--primary-text);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            user-select: none;
         }
 
-        .quiz-container {
-            background-color: #16213e;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            width: 100%;
-            max-width: 700px;
-            overflow: hidden;
-            border: 2px solid #0f3460;
-        }
-
-        .quiz-header {
-            padding: 2rem;
-            background-color: #0f3460;
-        }
-
-        .quiz-header h1 {
-            margin: 0;
-            text-align: center;
-            color: #e94560;
-        }
-        
-        #question-container {
-            padding: 2rem;
-        }
-
-        #question {
-            font-size: 1.3rem;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-
-        .answer-buttons {
+        .game-container {
+            width: 900px;
+            height: 650px;
+            background-color: #282c37;
+            border-radius: 10px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.5);
+            padding: 25px;
             display: flex;
             flex-direction: column;
-            gap: 0.8rem;
         }
 
-        .btn {
-            background-color: #e94560;
-            color: #16213e;
-            border: 2px solid transparent;
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--block-border);
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        #query-box {
+            background-color: var(--bg-color);
+            padding: 20px;
             border-radius: 8px;
-            padding: 1rem;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 1.3em;
+            margin-bottom: 25px;
+            border: 1px dashed var(--block-border);
         }
 
-        .btn:hover:not([disabled]) {
-            background-color: #f36d85;
-            transform: translateY(-2px);
+        .game-main {
+            display: flex;
+            flex-grow: 1;
+            gap: 20px;
         }
 
-        .btn:disabled {
-            cursor: not-allowed;
+        #holding-area {
+            flex-basis: 65%;
+            border: 2px dashed var(--block-border);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
         }
         
-        .btn.correct {
-            background-color: #2ecc71;
-            color: white;
-            border-color: #27ae60;
-        }
-
-        .btn.incorrect {
-            background-color: #e74c3c;
-            color: white;
-            border-color: #c0392b;
-        }
-
-        .controls {
-            padding: 2rem;
+        #processing-zone {
+            flex-basis: 35%;
+            border: 2px dashed var(--drop-zone-border);
+            border-radius: 8px;
+            background-color: var(--drop-zone-bg);
             display: flex;
             justify-content: center;
             align-items: center;
+            font-size: 1.5em;
+            color: var(--drop-zone-border);
+            transition: background-color 0.3s;
         }
 
-        #next-btn, #restart-btn {
-            background-color: #533483;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        #processing-zone.over {
+            background-color: rgba(255, 152, 0, 0.25);
+            transform: scale(1.02);
+        }
+        
+        #processing-zone.correct {
+            background-color: rgba(76, 175, 80, 0.3);
+            border-color: var(--correct-color);
+            color: var(--correct-color);
+        }
+        
+        #processing-zone.incorrect {
+            background-color: rgba(244, 67, 54, 0.3);
+            border-color: var(--incorrect-color);
+            color: var(--incorrect-color);
         }
 
-        #next-btn:hover, #restart-btn:hover {
-            background-color: #6f42c1;
-        }
 
-        #score-container {
+        .data-block {
+            background-color: var(--block-bg);
+            border: 1px solid var(--block-border);
+            padding: 15px;
+            border-radius: 5px;
             text-align: center;
-            padding: 2rem;
-            font-size: 1.5rem;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .data-block:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
-        .hide {
-            display: none;
+        .data-block.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
         }
+        
+        /* Pop-up Screens */
+        .popup-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(29, 33, 43, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 100;
+        }
+        
+        .popup-screen h1 {
+            font-size: 3em;
+            color: var(--accent-color);
+        }
+        
+        .popup-screen p {
+            max-width: 60%;
+            font-size: 1.1em;
+            line-height: 1.7;
+        }
+
+        .game-button {
+            font-family: 'Roboto Mono', monospace;
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
     </style>
 </head>
 <body>
-    <div class="quiz-container">
-        <div class="quiz-header">
-            <h1>Big Data Quiz</h1>
-        </div>
-        
-        <div id="question-container">
-            <div id="question">Question text</div>
-            <div id="answers" class="answer-buttons">
-                </div>
-        </div>
 
-        <div id="score-container" class="hide">
-             </div>
+    <div id="start-screen" class="popup-screen">
+        <h1>Data Sorter</h1>
+        <p>Your mission is to process incoming data queries. Read the query at the top, then drag the correct data block from the holding area on the left into the orange processing zone on the right. An incorrect sort will cost you a life!</p>
+        <button id="start-button" class="game-button">Begin Sorting</button>
+    </div>
 
-        <div class="controls">
-            <button id="next-btn" class="hide">Next</button>
-            <button id="restart-btn" class="hide">Restart Quiz</button>
+    <div id="end-screen" class="popup-screen" style="display: none;">
+        <h1 id="end-title"></h1>
+        <p id="end-score"></p>
+        <button id="restart-button" class="game-button">Sort Again</button>
+    </div>
+
+    <div class="game-container" style="visibility: hidden;">
+        <div class="game-header">
+            <div id="score">SCORE: 0</div>
+            <div id="lives">LIVES: 3</div>
+        </div>
+        <div id="query-box">
+            <span id="question-text"></span>
+        </div>
+        <div class="game-main">
+            <div id="holding-area">
+                <!-- Data blocks will be generated here -->
+            </div>
+            <div id="processing-zone">
+                <span>PROCESSING ZONE</span>
+            </div>
         </div>
     </div>
 
     <script>
-        const questionElement = document.getElementById('question');
-        const answerButtonsElement = document.getElementById('answers');
-        const nextButton = document.getElementById('next-btn');
-        const restartButton = document.getElementById('restart-btn');
-        const scoreContainer = document.getElementById('score-container');
-        const questionContainer = document.getElementById('question-container');
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameData = [
+                { question: "Query: Define 'Big Data'.", options: ["Any large collection of digital information.", "Datasets that are only about large volume.", "Extremely large and complex datasets that traditional data processing applications cannot handle.", "Data that is primarily stored in physical formats."], answer: 2 },
+                { question: "Query: Identify the invalid 'V' of Big Data.", options: ["Volume", "Velocity", "Viscosity", "Value"], answer: 2 },
+                { question: "Query: What is the primary business use of Big Data?", options: ["Ignoring customer behavior.", "To understand customer behavior, personalize marketing, and optimize operations.", "Reducing product offers.", "Sending generic emails."], answer: 1 },
+                { question: "Query: What is the main collection method for Big Data?", options: ["Paper-based surveys.", "One-on-one interviews.", "Digital data streams from websites, social media, and IoT devices.", "Observing behaviors without tracking."], answer: 2 },
+                { question: "Query: Identify a major ethical concern of Big Data.", options: ["Data becoming too valuable.", "Ensuring data privacy, fairness in algorithms, and responsible data usage.", "Creation of too many tech jobs.", "Development of smarter cars."], answer: 1 }
+            ];
 
-        let shuffledQuestions, currentQuestionIndex;
-        let score = 0;
+            // DOM Elements
+            const gameContainer = document.querySelector('.game-container');
+            const startScreen = document.getElementById('start-screen');
+            const endScreen = document.getElementById('end-screen');
+            const startButton = document.getElementById('start-button');
+            const restartButton = document.getElementById('restart-button');
+            const scoreEl = document.getElementById('score');
+            const livesEl = document.getElementById('lives');
+            const questionTextEl = document.getElementById('question-text');
+            const holdingArea = document.getElementById('holding-area');
+            const processingZone = document.getElementById('processing-zone');
 
-        const questions = [
-            {
-                [cite_start]question: "According to the presentation, which of the following is NOT one of the '5 Vs' of Big Data? [cite: 76]",
-                answers: [
-                    [cite_start]{ text: 'Volume [cite: 77]', correct: false },
-                    [cite_start]{ text: 'Velocity [cite: 79]', correct: false },
-                    { text: 'Virtualization', correct: true },
-                    [cite_start]{ text: 'Value [cite: 85]', correct: false }
-                ]
-            },
-            {
-                [cite_start]question: "How do businesses primarily use Big Data to achieve more efficient and profitable outcomes? [cite: 15, 16]",
-                answers: [
-                    [cite_start]{ text: 'By creating more physical paper documents [cite: 26]', correct: false },
-                    [cite_start]{ text: 'To understand customer behavior, personalize marketing, and optimize operations [cite: 15]', correct: true },
-                    [cite_start]{ text: 'Exclusively for managing traffic flow in cities [cite: 20]', correct: false },
-                    [cite_start]{ text: 'To reduce the number of emails sent daily [cite: 50]', correct: false }
-                ]
-            },
-            {
-                [cite_start]question: "During which era did the advent of smartphones and the Internet of Things (IoT) lead to an exponential surge in data generation? [cite: 31, 32]",
-                answers: [
-                    [cite_start]{ text: 'Pre-2000s [cite: 25]', correct: false },
-                    [cite_start]{ text: 'Early 2000s [cite: 28]', correct: false },
-                    [cite_start]{ text: 'Mid-2000s Onwards [cite: 31]', correct: true },
-                    [cite_start]{ text: 'The era of paper documents [cite: 26]', correct: false }
-                ]
-            },
-            {
-                [cite_start]question: "Which Big Data framework is highlighted for its fast, in-memory processing capabilities? [cite: 93]",
-                answers: [
-                    [cite_start]{ text: 'Hadoop [cite: 97]', correct: false },
-                    [cite_start]{ text: 'Apache Spark [cite: 93, 98]', correct: true },
-                    [cite_start]{ text: 'Pig [cite: 100]', correct: false },
-                    [cite_start]{ text: 'Hive [cite: 99]', correct: false }
-                ]
-            },
-            {
-                [cite_start]question: "In healthcare, Big Data is used to predict disease outbreaks and personalize treatments by analyzing what? [cite: 18, 106]",
-                answers: [
-                    [cite_start]{ text: 'Instagram Photos [cite: 44]', correct: false },
-                    [cite_start]{ text: 'Tweets Sent [cite: 47]', correct: false },
-                    [cite_start]{ text: 'Vast medical records and research findings [cite: 18, 106]', correct: true },
-                    [cite_start]{ text: 'Google Searches [cite: 41]', correct: false }
-                ]
-            },
-            {
-                [cite_start]question: "The ethical principle of ensuring data is only used for the specific purpose it was collected for is known as: [cite: 147]",
-                answers: [
-                    [cite_start]{ text: 'Data Minimization [cite: 148]', correct: false },
-                    [cite_start]{ text: 'Purpose Limitation [cite: 147]', correct: true },
-                    [cite_start]{ text: 'Data Quality Assurance [cite: 122]', correct: false },
-                    [cite_start]{ text: 'Privacy by Design [cite: 171]', correct: false }
-                ]
-            },
-            {
-                [cite_start]question: "True or False: The concept of Big Data is entirely new and was only developed after the rise of smartphones. [cite: 23]",
-                answers: [
-                    { text: 'True', correct: false },
-                    [cite_start]{ text: 'False [cite: 23]', correct: true }
-                ]
-            },
-            {
-                [cite_start]question: "Which of the following is NOT listed as a primary data collection method in the presentation? [cite: 113]",
-                answers: [
-                    [cite_start]{ text: 'Surveys & Questionnaires [cite: 114]', correct: false },
-                    [cite_start]{ text: 'Digital Data Streams [cite: 117]', correct: false },
-                    [cite_start]{ text: 'Financial stock trading [cite: 108]', correct: true },
-                    [cite_start]{ text: 'Observational Data [cite: 116]', correct: false }
-                ]
-            },
-            {
-                [cite_start]question: "What is a potential source of 'Collection Bias' in Big Data? [cite: 158]",
-                answers: [
-                    [cite_start]{ text: 'Flaws in the algorithms that process data [cite: 159]', correct: false },
-                    [cite_start]{ text: 'Data gathered from unrepresentative samples [cite: 158]', correct: true },
-                    [cite_start]{ text: 'Human biases influencing data interpretation [cite: 160]', correct: false },
-                    [cite_start]{ text: 'Ensuring data quality and accuracy [cite: 122]', correct: false }
-                ]
-            },
-            {
-                [cite_start]question: "In the e-commerce case study, what was the primary goal for using scaled surveys? [cite: 134]",
-                answers: [
-                    [cite_start]{ text: 'To predict disease outbreaks [cite: 106]', correct: false },
-                    [cite_start]{ text: 'To model climate change [cite: 60]', correct: false },
-                    [cite_start]{ text: 'To detect financial fraud [cite: 108]', correct: false },
-                    [cite_start]{ text: 'To understand customer satisfaction and personalize the shopping experience [cite: 134]', correct: true }
-                ]
+            // Game State
+            let score, lives, currentQuestionIndex, draggedItem;
+
+            function initGame() {
+                score = 0;
+                lives = 3;
+                currentQuestionIndex = 0;
+                updateUI();
+                loadQuestion();
+                startScreen.style.display = 'none';
+                endScreen.style.display = 'none';
+                gameContainer.style.visibility = 'visible';
             }
-        ];
 
-        startQuiz();
-
-        nextButton.addEventListener('click', () => {
-            currentQuestionIndex++;
-            setNextQuestion();
-        });
-        
-        restartButton.addEventListener('click', startQuiz);
-
-        function startQuiz() {
-            score = 0;
-            shuffledQuestions = questions.sort(() => Math.random() - 0.5);
-            currentQuestionIndex = 0;
-            scoreContainer.classList.add('hide');
-            questionContainer.classList.remove('hide');
-            restartButton.classList.add('hide');
-            nextButton.classList.remove('hide');
-            setNextQuestion();
-        }
-
-        function setNextQuestion() {
-            resetState();
-            if (currentQuestionIndex < shuffledQuestions.length) {
-                showQuestion(shuffledQuestions[currentQuestionIndex]);
-            } else {
-                showScore();
-            }
-        }
-
-        function showQuestion(question) {
-            questionElement.innerText = question.question;
-            question.answers.forEach(answer => {
-                const button = document.createElement('button');
-                button.innerText = answer.text;
-                button.classList.add('btn');
-                if (answer.correct) {
-                    button.dataset.correct = answer.correct;
+            function loadQuestion() {
+                if (currentQuestionIndex >= gameData.length) {
+                    winGame();
+                    return;
                 }
-                button.addEventListener('click', selectAnswer);
-                answerButtonsElement.appendChild(button);
+                holdingArea.innerHTML = '';
+                const q = gameData[currentQuestionIndex];
+                questionTextEl.textContent = q.question;
+
+                q.options.forEach((option, index) => {
+                    const block = document.createElement('div');
+                    block.classList.add('data-block');
+                    block.draggable = true;
+                    block.textContent = option;
+                    block.dataset.answerIndex = index;
+                    holdingArea.appendChild(block);
+                });
+            }
+
+            function updateUI() {
+                scoreEl.textContent = `SCORE: ${score}`;
+                livesEl.textContent = `LIVES: ${lives}`;
+            }
+
+            function handleDrop(isCorrect) {
+                processingZone.classList.remove('over');
+                if (isCorrect) {
+                    score += 100;
+                    currentQuestionIndex++;
+                    processingZone.classList.add('correct');
+                    processingZone.firstElementChild.textContent = 'SORTED!';
+                    setTimeout(() => {
+                        processingZone.classList.remove('correct');
+                        processingZone.firstElementChild.textContent = 'PROCESSING ZONE';
+                        loadQuestion();
+                    }, 1000);
+                } else {
+                    lives--;
+                    processingZone.classList.add('incorrect');
+                    processingZone.firstElementChild.textContent = 'ERROR!';
+                    if (lives <= 0) {
+                        setTimeout(loseGame, 1000);
+                    }
+                    setTimeout(() => {
+                        processingZone.classList.remove('incorrect');
+                        processingZone.firstElementChild.textContent = 'PROCESSING ZONE';
+                    }, 1000);
+                }
+                updateUI();
+            }
+            
+            function loseGame() {
+                endGame(false);
+            }
+
+            function winGame() {
+                endGame(true);
+            }
+
+            function endGame(isWin) {
+                gameContainer.style.visibility = 'hidden';
+                endScreen.style.display = 'flex';
+                document.getElementById('end-title').textContent = isWin ? 'SORTING COMPLETE' : 'SYSTEM OVERLOAD';
+                document.getElementById('end-score').textContent = `Final Score: ${score}`;
+            }
+
+            // Event Listeners
+            startButton.addEventListener('click', initGame);
+            restartButton.addEventListener('click', initGame);
+
+            // Drag and Drop Logic
+            holdingArea.addEventListener('dragstart', e => {
+                if (e.target.classList.contains('data-block')) {
+                    draggedItem = e.target;
+                    setTimeout(() => e.target.classList.add('dragging'), 0);
+                }
             });
-        }
 
-        function resetState() {
-            nextButton.classList.add('hide');
-            while (answerButtonsElement.firstChild) {
-                answerButtonsElement.removeChild(answerButtonsElement.firstChild);
-            }
-        }
-
-        function selectAnswer(e) {
-            const selectedButton = e.target;
-            const correct = selectedButton.dataset.correct === 'true';
-            if (correct) {
-                score++;
-            }
-            Array.from(answerButtonsElement.children).forEach(button => {
-                setStatusClass(button, button.dataset.correct === 'true');
-                button.disabled = true;
+            holdingArea.addEventListener('dragend', e => {
+                if (draggedItem) {
+                    draggedItem.classList.remove('dragging');
+                    draggedItem = null;
+                }
             });
-            nextButton.classList.remove('hide');
-        }
 
-        function setStatusClass(element, correct) {
-            clearStatusClass(element);
-            if (correct) {
-                element.classList.add('correct');
-            } else {
-                element.classList.add('incorrect');
-            }
-        }
+            processingZone.addEventListener('dragover', e => {
+                e.preventDefault();
+                processingZone.classList.add('over');
+            });
 
-        function clearStatusClass(element) {
-            element.classList.remove('correct');
-            element.classList.remove('incorrect');
-        }
+            processingZone.addEventListener('dragleave', () => {
+                processingZone.classList.remove('over');
+            });
 
-        function showScore() {
-            resetState();
-            questionContainer.classList.add('hide');
-            scoreContainer.classList.remove('hide');
-            nextButton.classList.add('hide');
-            restartButton.classList.remove('hide');
-            scoreContainer.innerHTML = `
-                <h2>Quiz Complete!</h2>
-                <p>You scored ${score} out of ${questions.length}.</p>
-            `;
-        }
+            processingZone.addEventListener('drop', e => {
+                e.preventDefault();
+                if (draggedItem) {
+                    const correctIndex = gameData[currentQuestionIndex].answer;
+                    const droppedIndex = parseInt(draggedItem.dataset.answerIndex);
+                    handleDrop(correctIndex === droppedIndex);
+                    draggedItem.remove();
+                    draggedItem = null;
+                }
+            });
+        });
     </script>
+
 </body>
 </html>
